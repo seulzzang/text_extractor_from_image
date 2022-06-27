@@ -1,4 +1,5 @@
 # encoding: utf-8
+#추출한 텍스트 word에 올리기
 from docx import Document
 
 doc = Document()
