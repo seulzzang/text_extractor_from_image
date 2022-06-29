@@ -54,15 +54,18 @@ def scan_img(image, width,ksize=(3,3), min_threshold=100, max_threshold=200):
 image_scan = scan_img(image,width=200,ksize=(3,3), min_threshold=180,max_threshold=210)
 # 전처리한 이미지로 텍스트 추출
 text = image_to_string(image_scan, lang='kor',config ='--psm 1 -c preserve_interword_spaces=1')
-text = text.replace(" ","")
+text = re.sub("\d+\s +\d","",text)
+text.replace("/\d+\s+\d","")
 print(text)
 # # print(pt.image_to_string(image,lang='kor',config= '-c preserve_interword_spaces=1 --psm 4'))
-
+# print(text[2])
 #추출한 텍스트 word에 올리기
 name = re.findall(r"\w{3}",text)[1]
-birthdate = re.findall(r"\d{6}", text)[0]
-address = re.findall(r"\w{3}(\w+구\b)",text)
+#birthdate = re.findall(r"\d{6}", text)
+birthdate = re.findall(r'[\+\(]?[1-9][0-9 ]{8,}[0-9]', text)
+address = re.findall(r"\w+시\b \w+구\b",text)[0]
 # date =
+
 print(name)
 print(birthdate)
 print(address)
