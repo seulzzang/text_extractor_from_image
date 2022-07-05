@@ -8,7 +8,7 @@ import imutils
 import re
 from datetime import datetime
 #이미지 불러오기
-image = cv2.imread(r"C:\Users\w0w12\Desktop\data4.jpg",cv2.IMREAD_COLOR)
+image = cv2.imread(r"C:\Users\w0w12\Desktop\hs_for_data.jpg",cv2.IMREAD_COLOR)
 
 # 이미지 전처리
 ## 첫 큰 사각형을 주민등록증 외곽으로 판단
@@ -20,7 +20,7 @@ def scan_img(image, width,ksize=(3,3), min_threshold=100, max_threshold=200):
 
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     gray = cv2.normalize(gray, None, 0, 255, cv2.NORM_MINMAX)
-    chahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
+    chahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(4,4))
     gray = chahe.apply(gray)
 
     blurred = cv2.GaussianBlur(gray, ksize, 0)
@@ -42,14 +42,13 @@ def scan_img(image, width,ksize=(3,3), min_threshold=100, max_threshold=200):
         else:
             return org_img
 
-
-## text를 좀 더 정확하게 가져오기 위해 이미지 화질 개선
-def img_roi(image):
+# 고정된 영역 가져오기
+def img_roi(image, ar=0):
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     (H, W) = gray.shape
-    kernel= cv2.getStructuringElement(cv2.MORPH_RECT, (12, 14))
+    kernel= cv2.getStructuringElement(cv2.MORPH_RECT, (16, 11))
 
-    gray = cv2.GaussianBlur(gray, (11, 11), 0)
+    gray = cv2.GaussianBlur(gray, (9, 9), 0)
     blackhat = cv2.morphologyEx(gray, cv2.MORPH_BLACKHAT, kernel)
     #grad = cv2.Sobel(gray, cv2.CV_8U, 1, 0, 3)
     grad = cv2.Laplacian(blackhat, ddepth=cv2.CV_32F,ksize=3)
@@ -67,26 +66,37 @@ def img_roi(image):
     cnts = imutils.grab_contours(cnts)
     cnts = sort_contours(cnts, method="top-to-bottom")[0]
 
-    roi_list = []
-    margin = 5
-    image_grouping = image.copy()
 
+    margin = 5
     for c in cnts:
         (x, y, w, h) = cv2.boundingRect(c)
         ar = w // float(h)
 
-        if ar == 5 :
-            color = (0, 255, 0)
-            roi = image[y - margin:y + h + margin, x - margin:x + w + margin]
-            roi_list.append(roi)
-        else:
-            color = (0, 0, 255)
 
-        f =cv2.rectangle(image_grouping, (x - margin, y - margin), (x + w + margin, y + h + margin), color, 2)
+        if ar == 6:
+            name_roi = image[y - margin:y + h + margin, x - margin:x + w + margin]
+            gray_roi = cv2.cvtColor(name_roi, cv2.COLOR_BGR2GRAY)
+            threshold_roi = cv2.threshold(gray_roi, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
+            name_text = pytesseract.image_to_string(threshold_roi)
+            return name_text
 
-    return f
+        elif ar ==5 :
+            birthday_roi = image[y-margin: y+h+margin, x-margin: x+w+margin]
+            gray_roi = cv2.cvtColor(birthday_roi, cv2.COLOR_BGR2GRAY)
+            threshold_roi = cv2.threshold(gray_roi, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
+            birthday_text = pytesseract.image_to_string(threshold_roi)
+            return birthday_text
 
-image1 =scan_img(image ,width=200,ksize=(3,3), min_threshold=20,max_threshold=210)
+
+        elif ar >=3 and ar <=4:
+            address_roi = image[y-margin: y+h+margin, x-margin: x+w+margin]
+            gray_roi = cv2.cvtColor(address_roi, cv2.COLOR_BGR2GRAY)
+            threshold_roi = cv2.threshold(gray_roi, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
+            address_text = pytesseract.image_to_string(threshold_roi)
+            return address_text
+
+## text를 좀 더 정확하게 가져오기 위해 이미지 화질 개선
+image1 =scan_img(image ,width=200,ksize=(3,3), min_threshold=100,max_threshold=210)
 gray = cv2.cvtColor(image1, cv2.COLOR_BGR2GRAY)
 gray = cv2.normalize(gray, None, 0, 255, cv2.NORM_MINMAX)
 chahe = cv2.createCLAHE(clipLimit=1.0, tileGridSize=(5, 5))
@@ -95,13 +105,15 @@ blurred = cv2.GaussianBlur(gray, (3,3), 0)
 #blurred = cv2.Canny(blurred, 20, 150)
 
 
-roi_img = img_roi(image1)
-cv2.imshow("img_edge",roi_img)
-cv2.waitKey(0)
-
 # 전처리한 이미지로 텍스트 추출
 text = image_to_string(blurred, lang='kor',config ='--psm 1 -c preserve_interword_spaces=1')
-print(text)
+# print(text)
+name = img_roi(image1, ar=6)
+birthday = img_roi(image1, ar=5)
+address = img_roi(image1, ar=3)
+print(name)
+print(birthday)
+print(address)
 # name = image_to_string(name_roi , lang='kor',config ='--psm 1 -c preserve_interword_spaces=1')
 # obirthday = image_to_string(birthday_roi, lang='kor',config ='--psm 1 -c preserve_interword_spaces=1')
 # address = image_to_string(address_roi, lang='kor',config ='--psm 1 -c preserve_interword_spaces=1')
