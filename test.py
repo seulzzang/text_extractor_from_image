@@ -61,7 +61,7 @@ def img_roi(image):
     cnts = sort_contours(cnts, method="top-to-bottom")[0]
 
     roi_list = []
-    margin = 9
+    margin = 8
     image_grouping = image.copy()
 
     for c in cnts:

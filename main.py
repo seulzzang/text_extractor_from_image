@@ -44,7 +44,7 @@ def scan_img(image, width,ksize=(3,3), min_threshold=100, max_threshold=200):
 
 # 고정된 영역 가져오기
 def img_roi(image):
-    org_img = image.copy()
+    # org_img = image.copy()
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     kernel= cv2.getStructuringElement(cv2.MORPH_RECT, (16, 11))
 
@@ -69,66 +69,65 @@ def img_roi(image):
     birthday_list = []
     address_list = []
 
-    margin = 10
+    margin = 8
     for c in cnts:
         (x, y, w, h) = cv2.boundingRect(c)
         ar = w // float(h)
         if ar == 7:
-            name_roi =org_img[y-margin: y+h+margin, x-margin: x+w+margin]
+            name_roi =image[y-margin: y+h+margin, x-margin: x+w+margin]
             name_list.append(name_roi)
-            # gray_roi = cv2.cvtColor(name_roi, cv2.COLOR_BGR2GRAY)
-            # gray_roi = cv2.normalize(gray_roi, None, 0, 255, cv2.NORM_MINMAX)
-            # chahe = cv2.createCLAHE(clipLimit=1.0, tileGridSize=(5, 5))
-            # gray= chahe.apply(gray_roi)
-            # blurred = cv2.GaussianBlur(gray, (3, 3), 0)
-            # name_text = image_to_string(blurred,lang='kor',config ='--psm 1')
-            # name_list.append(name_text)
+            gray_roi = cv2.cvtColor(name_roi, cv2.COLOR_BGR2GRAY)
+            gray_roi = cv2.normalize(gray_roi, None, 0, 255, cv2.NORM_MINMAX)
+            chahe = cv2.createCLAHE(clipLimit=1.0, tileGridSize=(5, 5))
+            gray= chahe.apply(gray_roi)
+            blurred = cv2.GaussianBlur(gray, (3, 3), 0)
+            name_text = image_to_string(blurred,lang='kor',config ='--psm 1')
+            name_list.append(name_text)
 
         elif ar == 5 :
-            birthday_roi =org_img[y-margin: y+h+margin, x-margin: x+w+margin]
+            birthday_roi = image[y-margin: y+h+margin, x-margin: x+w+margin]
             birthday_list.append(birthday_roi)
-            # gray_roi = cv2.cvtColor(birthday_roi, cv2.COLOR_BGR2GRAY)
-            # gray_roi = cv2.normalize(gray_roi, None, 0, 255, cv2.NORM_MINMAX)
-            # chahe = cv2.createCLAHE(clipLimit=1.0, tileGridSize=(5, 5))
-            # gray= chahe.apply(gray_roi)
-            # blurred = cv2.GaussianBlur(gray, (3, 3), 0)
-            # birthday_text =image_to_string(blurred,lang='kor',config ='--psm 1')
-            # birthday_list.append(birthday_text)
+            gray_roi = cv2.cvtColor(birthday_roi, cv2.COLOR_BGR2GRAY)
+            gray_roi = cv2.normalize(gray_roi, None, 0, 255, cv2.NORM_MINMAX)
+            chahe = cv2.createCLAHE(clipLimit=1.0, tileGridSize=(5, 5))
+            gray= chahe.apply(gray_roi)
+            blurred = cv2.GaussianBlur(gray, (3, 3), 0)
+            birthday_text =image_to_string(blurred,lang='kor',config ='--psm 1')
+            birthday_list.append(birthday_text)
 
 
         elif ar >=3 and ar <=4:
-            address_roi = org_img[y-margin: y+h+margin, x-margin: x+w+margin]
+            address_roi = image[y-margin: y+h+margin, x-margin: x+w+margin]
             address_list.append(address_roi)
-            # gray_roi = cv2.cvtColor(address_roi, cv2.COLOR_BGR2GRAY)
-            # gray_roi = cv2.normalize(gray_roi, None, 0, 255, cv2.NORM_MINMAX)
-            # chahe = cv2.createCLAHE(clipLimit=1.0, tileGridSize=(5, 5))
-            # gray= chahe.apply(gray_roi)
-            # blurred = cv2.GaussianBlur(gray, (3, 3), 0)
-            # address_text = image_to_string(blurred,lang='kor',config ='--psm 1')
-            # address_list.append(address_text)
+            gray_roi = cv2.cvtColor(address_roi, cv2.COLOR_BGR2GRAY)
+            gray_roi = cv2.normalize(gray_roi, None, 0, 255, cv2.NORM_MINMAX)
+            chahe = cv2.createCLAHE(clipLimit=1.0, tileGridSize=(5, 5))
+            gray= chahe.apply(gray_roi)
+            blurred = cv2.GaussianBlur(gray, (3, 3), 0)
+            address_text = image_to_string(blurred,lang='kor',config ='--psm 1')
+            address_list.append(address_text)
 
     total_list = [name_list, birthday_list, address_list]
     return total_list
 
 ## text를 좀 더 정확하게 가져오기 위해 이미지 화질 개선
 image1 =scan_img(image ,width=200,ksize=(3,3), min_threshold=100,max_threshold=210)
-print(image1)
 gray = cv2.cvtColor(image1, cv2.COLOR_BGR2GRAY)
 gray = cv2.normalize(gray, None, 0, 255, cv2.NORM_MINMAX)
 chahe = cv2.createCLAHE(clipLimit=1.0, tileGridSize=(5, 5))
 gray = chahe.apply(gray)
 blurred = cv2.GaussianBlur(gray, (3,3), 0)
-#blurred = cv2.Canny(blurred, 20, 150)
-text = image_to_string(blurred, lang='kor',config ='--psm 4 -c preserve_interword_spaces=1')
+text = image_to_string(blurred, lang='kor',config ='--psm 1 -c preserve_interword_spaces=1')
 print(text)
 
 
 # 전처리한 이미지로 텍스트 추출
-image1 =scan_img(image,width=200,ksize=(3,3), min_threshold=100,max_threshold=210)
+image1 =scan_img(image,width=200,ksize=(3,3), min_threshold=150,max_threshold=210)
 name_list = img_roi(image1)[0]
-thre = cv2.threshold(name_list, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
-name = image_to_string(thre)
-print(name)
+# gray_n = cv2.cvtColor(np.array(name_list), cv2.COLOR_BGR2GRAY)
+# thre = cv2.threshold(gray_n, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
+# name = image_to_string(thre)
+# print(name)
 birthday_list = img_roi(image1)[1]
 address_list = img_roi(image1)[2]
 print(name_list)
@@ -137,7 +136,8 @@ print(address_list)
 
 # name = image_to_string(name_roi , lang='kor',config ='--psm 1 -c preserve_interword_spaces=1')
 # obirthday = image_to_string(birthday_roi, lang='kor',config ='--psm 1 -c preserve_interword_spaces=1')
-# address = image_to_string(address_roi, lang='kor',config ='--psm 1 -c preserve_interword_spaces=1')
+address = image_to_string(address_list, lang='kor',config ='--psm 1')
+print(address)
 # date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
 
