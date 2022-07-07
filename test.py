@@ -83,22 +83,25 @@ def img_roi(image):
 
         f =cv2.rectangle(image_grouping, (x - margin, y - margin), (x + w + margin, y + h + margin), color, 2)
 
-    return f
+    return roi_list
 
 image1 =scan_img(image ,width=200,ksize=(3,3), min_threshold=20,max_threshold=210)
-gray = cv2.cvtColor(image1, cv2.COLOR_BGR2GRAY)
-gray = cv2.normalize(gray, None, 0, 255, cv2.NORM_MINMAX)
-chahe = cv2.createCLAHE(clipLimit=1.0, tileGridSize=(5, 5))
-gray = chahe.apply(gray)
-blurred = cv2.GaussianBlur(gray, (3,3), 0)
-
+roi_list = img_roi(image1)
+for i in roi_list:
+    gray = cv2.cvtColor(i, cv2.COLOR_BGR2GRAY)
+# gray = cv2.normalize(gray, None, 0, 255, cv2.NORM_MINMAX)
+# chahe = cv2.createCLAHE(clipLimit=1.0, tileGridSize=(5, 5))
+# gray_image = cv2.cvtColor(gray, cv2.COLOR_BGR2GRAY)
+# gray = chahe.apply(gray_image)
+#blurred = cv2.GaussianBlur(gray, (3,3), 0)
+    threshold_roi = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
 
 
 #def scaler_imag():
-roi_img = img_roi(image1)
-cv2.imshow("img_edge",roi_img)
-cv2.waitKey(0)
+# roi_img = img_roi(image1)
+# cv2.imshow("img_edge",roi_img)
+# cv2.waitKey(0)
 
 # 전처리한 이미지로 텍스트 추출
-text = image_to_string(blurred, lang='kor',config ='--psm 1 -c preserve_interword_spaces=1')
-print(text)
+    text = image_to_string(threshold_roi, lang='kor',config ='--psm 1')
+    print(text)
